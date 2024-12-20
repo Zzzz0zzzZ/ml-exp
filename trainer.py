@@ -3,12 +3,27 @@ from torch.utils.data import DataLoader
 from transformers import get_linear_schedule_with_warmup
 from tqdm import tqdm
 import numpy as np
+import os
+from datetime import datetime
+import pandas as pd
 
 class Trainer:
     def __init__(self, model, args):
         self.model = model
         self.args = args
         self.device = args.device
+        
+        # 生成时间戳
+        self.timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        
+        # 获取项目根目录
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(self.args.train_file)))
+        
+        # 创建保存目录
+        self.weights_dir = os.path.join(project_root, 'weights')
+        self.results_dir = os.path.join(project_root, 'results')
+        os.makedirs(self.weights_dir, exist_ok=True)
+        os.makedirs(self.results_dir, exist_ok=True)
         
         self.criterion = torch.nn.CrossEntropyLoss()
         self.optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate)
@@ -76,6 +91,15 @@ class Trainer:
         
         # Load best model
         self.model.load_state_dict(best_model_state)
+        
+        # 保存最佳模型
+        best_model_path = os.path.join(
+            self.weights_dir, 
+            f'{self.args.alias}_{self.timestamp}.pt'
+        )
+        torch.save(best_model_state, best_model_path)
+        print(f'最佳模型已保存到: {best_model_path}')
+        
         return best_val_acc
     
     def evaluate(self, dataloader):
@@ -111,4 +135,16 @@ class Trainer:
                 preds = torch.argmax(outputs, dim=1)
                 predictions.extend(preds.cpu().numpy())
                 
+        # 保存预测结果
+        submission_path = os.path.join(
+            self.results_dir,
+            f'submission_{self.args.alias}_{self.timestamp}.csv'
+        )
+        submission = pd.DataFrame({
+            'index': range(len(predictions)),
+            'label': predictions
+        })
+        submission.to_csv(submission_path, index=False)
+        print(f'预测结果已保存到: {submission_path}')
+        
         return predictions 
