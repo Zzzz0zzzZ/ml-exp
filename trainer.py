@@ -38,6 +38,7 @@ class Trainer:
             num_training_steps=num_training_steps
         )
 
+        best_val_loss = float('inf')
         best_val_acc = 0
         patience_counter = 0
         best_model_state = None
@@ -78,7 +79,8 @@ class Trainer:
             print(f'Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}')
 
             # Early stopping
-            if val_acc > best_val_acc:
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
                 best_val_acc = val_acc
                 best_model_state = self.model.state_dict()
                 patience_counter = 0
@@ -87,6 +89,7 @@ class Trainer:
 
             if patience_counter >= self.args.early_stopping_patience:
                 print(f'Early stopping triggered after epoch {epoch + 1}')
+                print(f'Best validation loss: {best_val_loss:.4f}, accuracy: {best_val_acc:.4f}')
                 break
 
         # Load best model
@@ -100,7 +103,7 @@ class Trainer:
         torch.save(best_model_state, best_model_path)
         print(f'最佳模型已保存到: {best_model_path}')
 
-        return best_val_acc
+        return best_val_loss, best_val_acc
 
     def evaluate(self, dataloader):
         self.model.eval()

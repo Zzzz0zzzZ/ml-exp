@@ -74,8 +74,8 @@ def main():
 
     # 训练模型
     trainer = Trainer(model, args)
-    best_val_acc = trainer.train(train_dataloader, val_dataloader)
-    print(f'Best validation accuracy: {best_val_acc:.4f}')
+    best_val_loss, best_val_acc = trainer.train(train_dataloader, val_dataloader)
+    print(f'Best validation loss: {best_val_loss:.4f}, accuracy: {best_val_acc:.4f}')
 
     # 预测测试集
     predictions = trainer.predict(test_dataloader)
