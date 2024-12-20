@@ -18,6 +18,20 @@ def main():
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
 
+    # 打印超参数配置
+    print("\n=== 模型配置 ===")
+    print(f"模型名称: {args.model_name}")
+    print(f"最大序列长度: {args.max_length}")
+    print(f"批次大小: {args.batch_size}")
+    print(f"学习率: {args.learning_rate}")
+    print(f"训练轮数: {args.epochs}")
+    print(f"训练集比例: {args.train_ratio}")
+    print(f"预热比例: {args.warmup_ratio}")
+    print(f"早停耐心值: {args.early_stopping_patience}")
+    print(f"随机种子: {args.seed}")
+    print(f"设备: {args.device}")
+    print("===============\n")
+
     # 检查数据文件是否存在
     for file_path in [args.train_file, args.test_file]:
         if not os.path.exists(file_path):
@@ -66,16 +80,7 @@ def main():
     # 预测测试集
     predictions = trainer.predict(test_dataloader)
 
-    # 保存预测结果
-    submission = pd.DataFrame({
-        'index': range(len(predictions)),
-        'label': predictions
-    })
-
-    # 确保输出目录存在
-    os.makedirs(os.path.dirname(args.output_file), exist_ok=True)
-    submission.to_csv(args.output_file, index=False)
-    print(f'预测结果已保存到: {args.output_file}')
+    print("\n=== Done. ===")
 
 
 if __name__ == '__main__':
